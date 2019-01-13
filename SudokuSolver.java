@@ -13,6 +13,8 @@ public class SudokuSolver{
   public static void main(String[] args){
     SudokuSolver solver = new SudokuSolver();
     print(solver.puzzle);
+    System.out.println(solver.findNextEmpty(solver.puzzle)[0]);
+    System.out.println(solver.findNextEmpty(solver.puzzle)[1]);
     //setValues(solver.puzzle,"./puzzles/testPuzzle1Answers.csv",9);
     //print(solver.puzzle);
     System.out.println(solver.isValid(solver.puzzle));
@@ -24,6 +26,19 @@ public class SudokuSolver{
     while(!q.isEmpty()){
         StateObj temp = q.pop();
     }
+  }
+
+  public int[] findNextEmpty(int[][] puzzle){
+    for(int i=0;i<puzzle.length;i++){
+      for(int j=0;j<puzzle[i].length;j++){
+        if(puzzle[i][j]==0){
+          int[] arr = new int[2];
+          arr[0]=i; arr[1]=j;
+          return arr;
+        }
+      }
+    }
+    return null;
   }
 
   public boolean isValid(int[][] puzzle){
