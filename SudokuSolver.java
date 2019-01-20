@@ -7,15 +7,14 @@ public class SudokuSolver{
 
   public SudokuSolver(){
     puzzle = new int[9][9];
-    setValues(puzzle,"./puzzles/testPuzzle2.csv",9);
+    setValues(puzzle,"./puzzles/testPuzzle3.csv",9);
   }
 
   public static void main(String[] args){
     SudokuSolver solver = new SudokuSolver();
     print(solver.puzzle);
     solver.stateSpaceSearch(solver.puzzle);
-    //solver.recursiveBackTracking(solver.puzzle);
-    //setValues(solver.puzzle,"./puzzles/testPuzzle1Answers.csv",9);
+    solver.recursiveBackTracking(solver.puzzle);
   }
 
   public void stateSpaceSearch(int[][] puzzle){
@@ -54,12 +53,10 @@ public class SudokuSolver{
         }
       }
     }
-    print(arr);
     solveAt(arr,bool,0,0,1);
   }
 
   public void solveAt(int[][] puzzle, boolean[][] bool, int i,int j, int val){
-    //System.out.println(i + " " + j + " " + val);
     if(bool[i][j]){
       if(i==8&&j==8){
         if(isValid(puzzle)){
@@ -103,18 +100,18 @@ public class SudokuSolver{
   }
 
   public int[] findPriorIncrementableValue(int[][] puzzle, boolean[][] bool, int i, int j){
-    int[] arr = null;
-    for(int k=0;k<=i;k++){
-      for(int l=0;l<9;l++){
-        //System.out.println(k + " " + l);
-        if(l>=j && k>=i){return arr;}
+    for(int k=i;k>=0;k--){
+      for(int l=8;l>=0;l--){
+        if(k==i && l>j){continue;}
         if(!bool[k][l] && (puzzle[k][l]!=9) && (k!=i || j!=l)){
-          arr = new int[3];
+          int[] arr = new int[3];
           arr[0]=k;arr[1]=l;arr[2]=puzzle[k][l];
+          return arr;
         }
+        if(!bool[k][l]){puzzle[k][l]=0;}
       }
     }
-    return arr;
+    return null;
   }
 
   public int[] findNextEmpty(int[][] puzzle){
