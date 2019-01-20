@@ -14,7 +14,7 @@ public class SudokuSolver{
     SudokuSolver solver = new SudokuSolver();
     print(solver.puzzle);
     solver.stateSpaceSearch(solver.puzzle);
-    solver.recursiveBackTracking(solver.puzzle);
+    //solver.recursiveBackTracking(solver.puzzle);
   }
 
   public void stateSpaceSearch(int[][] puzzle){
