@@ -7,25 +7,114 @@ public class SudokuSolver{
 
   public SudokuSolver(){
     puzzle = new int[9][9];
-    setValues(puzzle,"./puzzles/testPuzzle1.csv",9);
+    setValues(puzzle,"./puzzles/testPuzzle2.csv",9);
   }
 
   public static void main(String[] args){
     SudokuSolver solver = new SudokuSolver();
     print(solver.puzzle);
-    System.out.println(solver.findNextEmpty(solver.puzzle)[0]);
-    System.out.println(solver.findNextEmpty(solver.puzzle)[1]);
+    solver.stateSpaceSearch(solver.puzzle);
+    //solver.recursiveBackTracking(solver.puzzle);
     //setValues(solver.puzzle,"./puzzles/testPuzzle1Answers.csv",9);
-    //print(solver.puzzle);
-    System.out.println(solver.isValid(solver.puzzle));
   }
 
-  public void stateSpaceSearch(int[][] puzzle, StateObj first){
+  public void stateSpaceSearch(int[][] puzzle){
+    StateObj first = new StateObj(puzzle);
     Stack<StateObj> q = new Stack<StateObj>();
-    q.add(first);
+    q.push(first);
     while(!q.isEmpty()){
         StateObj temp = q.pop();
+        int[] pos = findNextEmpty(temp.array);
+        if(pos!=null){
+          for(int i=0;i<9;i++){
+            int[][] arr = new int[9][9];
+            arrayCopy(temp.array,arr);
+            arr[pos[0]][pos[1]] = i+1;
+            if(isValid(arr)){
+              StateObj next = new StateObj(arr);
+              q.push(next);
+            }
+          }
+        }else{
+          if(isValid(temp.array)){
+            print(temp.array);
+          }
+        }
     }
+  }
+
+  public void recursiveBackTracking(int[][] puzzle){
+    int[][] arr = new int[9][9];
+    boolean[][] bool = new boolean[9][9];
+    arrayCopy(puzzle,arr);
+    for(int i=0;i<9;i++){
+      for(int j=0;j<9;j++){
+        if(arr[i][j]!=0){
+          bool[i][j]=true;
+        }
+      }
+    }
+    print(arr);
+    solveAt(arr,bool,0,0,1);
+  }
+
+  public void solveAt(int[][] puzzle, boolean[][] bool, int i,int j, int val){
+    //System.out.println(i + " " + j + " " + val);
+    if(bool[i][j]){
+      if(i==8&&j==8){
+        if(isValid(puzzle)){
+          print(puzzle);
+          return;
+        }
+      }else if(j==8){
+        solveAt(puzzle,bool,i+1,0,1);
+      }else{
+        solveAt(puzzle,bool,i,j+1,1);
+      }
+    }else{
+      puzzle[i][j] = val;
+      if(isValid(puzzle)){
+        if(i==8&&j==8){
+          print(puzzle);
+          return;
+        }else if(j==8){
+          solveAt(puzzle,bool,i+1,0,1);
+        }else{
+          solveAt(puzzle,bool,i,j+1,1);
+        }
+      }else{
+        puzzle[i][j] = 0;
+        if(val==9){
+          int[] pos = findPriorIncrementableValue(puzzle,bool,i,j);
+          if((i==0&&j==0) || pos==null){
+            if(pos==null){
+              System.out.println("null");
+            }
+            System.out.println("Failed");
+            return;
+          }else{
+            solveAt(puzzle,bool,pos[0],pos[1],pos[2]+1);
+          }
+        }else{
+          solveAt(puzzle,bool,i,j,val+1);
+        }
+      }
+    }
+  }
+
+  public int[] findPriorIncrementableValue(int[][] puzzle, boolean[][] bool, int i, int j){
+    int[] arr = null;
+    for(int k=0;k<=i;k++){
+      for(int l=0;l<9;l++){
+        //System.out.println(k + " " + l);
+        if(l>=j && k>=i){return arr;}
+        if(!bool[k][l] && (puzzle[k][l]!=9) && (k!=i || j!=l)){
+          arr = new int[3];
+          arr[0]=k;arr[1]=l;arr[2]=puzzle[k][l];
+        }
+      }
+    }
+    return arr;
   }
 
   public int[] findNextEmpty(int[][] puzzle){
@@ -49,7 +138,7 @@ public class SudokuSolver{
       for(int j=0;j<puzzle[i].length;j++){
         if(puzzle[i][j]==0){continue;}
         refArray[puzzle[i][j]-1][1]++;
-        if(refArray[puzzle[i][j]-1][1]>1){System.out.println("row" + i + " " + j);return false;}
+        if(refArray[puzzle[i][j]-1][1]>1){return false;}
       }
       for(int j=0;j<refArray.length;j++){
         refArray[j][1]=0;
@@ -61,7 +150,7 @@ public class SudokuSolver{
       for(int i=0;i<puzzle[j].length;i++){
         if(puzzle[i][j]==0){continue;}
         refArray[puzzle[i][j]-1][1]++;
-        if(refArray[puzzle[i][j]-1][1]>1){System.out.println("col" + i + " " + j);return false;}
+        if(refArray[puzzle[i][j]-1][1]>1){return false;}
       }
       for(int i=0;i<refArray.length;i++){
         refArray[i][1]=0;
@@ -75,7 +164,7 @@ public class SudokuSolver{
           for(int j=(3*jM-3);j<3*jM;j++){
             if(puzzle[i][j]==0){continue;}
             refArray[puzzle[i][j]-1][1]++;
-            if(refArray[puzzle[i][j]-1][1]>1){System.out.println("sq" + i + " " + j);return false;}
+            if(refArray[puzzle[i][j]-1][1]>1){return false;}
           }
         }
         for(int j=0;j<refArray.length;j++){
@@ -100,6 +189,7 @@ public class SudokuSolver{
         System.out.print("\n");
       }
     }
+    System.out.print("\n");
   }
 
   public static void setValues(int[][] array, String path, int length){
@@ -125,10 +215,11 @@ public class SudokuSolver{
   }
 
   public void arrayCopy(int[][] src, int[][] dest){
-    if((src.length!=dest.length) || (src[0].length!=dest[0].length))
-    for(int i=0;i<src.length;i++){
-      for(int j=0;j<src[i].length;j++){
-        dest[i][j] = src[i][j];
+    if((src.length==dest.length) && (src[0].length==dest[0].length)){
+      for(int i=0;i<src.length;i++){
+        for(int j=0;j<src[i].length;j++){
+          dest[i][j] = src[i][j];
+        }
       }
     }
   }
@@ -137,8 +228,8 @@ public class SudokuSolver{
     int[][] array;
 
     public StateObj(int[][] source){
-      array = new int[source.length][source[0].length];
-      arrayCopy(source,array);
+      this.array = new int[source.length][source[0].length];
+      arrayCopy(source,this.array);
     }
 
     public int[][] getArray(){
